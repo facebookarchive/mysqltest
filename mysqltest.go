@@ -25,6 +25,7 @@ var mysqlReadyForConnections = []byte("mysqld: ready for connections")
 
 var configTemplate, configTemplateErr = template.New("config").Parse(`
 [mysqld]
+bind-address                    = 127.0.0.1
 datadir                         = {{.DataDir}}
 innodb-buffer-pool-size         = 5M
 innodb-buffer-pool-stats        = 0
@@ -129,7 +130,7 @@ func (s *Server) Stop() {
 // DSN for the mysql server, suitable for use with sql.Open. The suffix is in
 // the form "dbname?param=value".
 func (s *Server) DSN(suffix string) string {
-	return fmt.Sprintf("root@tcp(localhost:%d)/%s", s.Port, suffix)
+	return fmt.Sprintf("root@tcp(127.0.0.1:%d)/%s", s.Port, suffix)
 }
 
 // DB for the server. The suffix is in the form "dbname?param=value".
