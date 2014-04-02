@@ -12,13 +12,14 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"testing"
 	"text/template"
 
 	// We're optionally provide a DB instance backed by this driver.
 	_ "github.com/go-sql-driver/mysql"
 
-	"github.com/ParsePlatform/go.freeport"
-	"github.com/ParsePlatform/go.waitout"
+	"github.com/facebookgo/freeport"
+	"github.com/facebookgo/waitout"
 )
 
 var mysqlReadyForConnections = []byte("mysqld: ready for connections")
@@ -105,16 +106,22 @@ func (s *Server) Start() {
 
 	defaultsFile := fmt.Sprintf("--defaults-file=%s", cf.Name())
 	s.cmd = exec.Command("mysql_install_db", defaultsFile, "--basedir", mysqlBaseDir)
-	s.cmd.Stdout = os.Stdout
-	s.cmd.Stderr = os.Stderr
+	if testing.Verbose() {
+		s.cmd.Stdout = os.Stdout
+		s.cmd.Stderr = os.Stderr
+	}
 	if err := s.cmd.Run(); err != nil {
 		s.T.Fatalf(err.Error())
 	}
 
 	waiter := waitout.New(mysqlReadyForConnections)
 	s.cmd = exec.Command("mysqld", defaultsFile, "--basedir", mysqlBaseDir)
-	s.cmd.Stdout = os.Stdout
-	s.cmd.Stderr = io.MultiWriter(os.Stderr, waiter)
+	if testing.Verbose() {
+		s.cmd.Stdout = os.Stdout
+		s.cmd.Stderr = io.MultiWriter(os.Stderr, waiter)
+	} else {
+		s.cmd.Stderr = waiter
+	}
 	if err := s.cmd.Start(); err != nil {
 		s.T.Fatalf(err.Error())
 	}

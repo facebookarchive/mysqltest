@@ -3,7 +3,7 @@ package mysqltest_test
 import (
 	"testing"
 
-	"github.com/ParsePlatform/go.mysqltest"
+	"github.com/facebookgo/mysqltest"
 )
 
 func test(t *testing.T, answer int) {
