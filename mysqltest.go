@@ -12,7 +12,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
-	"testing"
 	"text/template"
 
 	// We're optionally provide a DB instance backed by this driver.
@@ -106,7 +105,7 @@ func (s *Server) Start() {
 
 	defaultsFile := fmt.Sprintf("--defaults-file=%s", cf.Name())
 	s.cmd = exec.Command("mysql_install_db", defaultsFile, "--basedir", mysqlBaseDir)
-	if testing.Verbose() {
+	if os.Getenv("MYSQLTEST_VERBOSE") == "1" {
 		s.cmd.Stdout = os.Stdout
 		s.cmd.Stderr = os.Stderr
 	}
@@ -116,7 +115,7 @@ func (s *Server) Start() {
 
 	waiter := waitout.New(mysqlReadyForConnections)
 	s.cmd = exec.Command("mysqld", defaultsFile, "--basedir", mysqlBaseDir)
-	if testing.Verbose() {
+	if os.Getenv("MYSQLTEST_VERBOSE") == "1" {
 		s.cmd.Stdout = os.Stdout
 		s.cmd.Stderr = io.MultiWriter(os.Stderr, waiter)
 	} else {
