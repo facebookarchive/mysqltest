@@ -13,6 +13,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"text/template"
+	"time"
 
 	// We're optionally provide a DB instance backed by this driver.
 	_ "github.com/go-sql-driver/mysql"
@@ -150,9 +151,19 @@ func (s *Server) DB(suffix string) *sql.DB {
 
 // NewStartedServer creates a new server starts it.
 func NewStartedServer(t Fatalf) *Server {
-	s := &Server{T: t}
-	s.Start()
-	return s
+	for {
+		s := &Server{T: t}
+		start := make(chan struct{})
+		go func() {
+			defer close(start)
+			s.Start()
+		}()
+		select {
+		case <-start:
+			return s
+		case <-time.After(30 * time.Second):
+		}
+	}
 }
 
 // NewServerDB creates a new server, starts it, creates the named DB, and
